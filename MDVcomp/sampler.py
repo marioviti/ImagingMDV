@@ -4,6 +4,8 @@ import operator
 from . import utils
 import base64, zlib, cPickle, pickle
 import os
+import sys
+import array
 
 class sampler:
     """
@@ -85,6 +87,7 @@ class sampler:
         self.__compStat["pattBank_Size"] = rang
         self.__compStat["pattBank_ratio"] = percent
 
+
     #tested
     def sample2D(self, image, thrss, bitDepth, patchSide):
         """
@@ -124,6 +127,7 @@ class sampler:
                         self.__freqHistogram.update({key: 1})
         self.__freqHistogram = { k : float(v)/float(self.__overall) for k,v in self.__freqHistogram.items() }
 
+        
     #tested
     def filter2DImage( self, image ):
         x, y = image.shape
@@ -165,7 +169,6 @@ class sampler:
                 if key in self.patternBank:
                     id_key = self.__patternBank[key]
                     if not id_key in position:
-                        print id_key
                         position.update({id_key:len(self.__compressedDictionary)})
                         self.__compressedDictionary += [[id_key,i,j]]
                     else:
@@ -189,16 +192,11 @@ class sampler:
                 elif not image[i][j] == 0 and offset == 0:
                     self.__compressedOffset += [image[i][j]]
 
-    #testing
+    #tested
     def saveCompressed( self, path ,namefile ):
-        #pickle.dump( self.__compressedDictionary, open( os.path.join( path, namefile+'_dictionary.pkl' ), "wb" ))
-        #pickle.dump( self.__compressedOffset, open( os.path.join( path, namefile+'_offset.pkl' ), "wb" ))
-        #pickle.dump( self.__compressedDictionary, open( os.path.join( path, namefile+'_dictionary_2.pkl' ), "wb" ),2)
-        #pickle.dump( self.__compressedOffset, open( os.path.join( path, namefile+'_offset_2.pkl' ), "wb" ),2)
-        compressed_offset = zlib.compress(cPickle.dumps(self.__compressedOffset),9)
-        pickle.dump( base64.b64encode(compressed_offset), open( os.path.join( path, namefile+'_offset.zip' ), "wb" ))
-        compressed_dictionary = zlib.compress(cPickle.dumps(self.__compressedDictionary),9)
-        pickle.dump( base64.b64encode(compressed_dictionary), open( os.path.join( path, namefile+'_dictionary.zip' ), "wb" ))
+        out_file = open(os.path.join( path, namefile+'_dict.mdv' ), "wb")
+        out_file.write(zlib.compress(pickle.dumps(self.__compressedDictionary,2),9))
+        out_file.close()
 
     #tested
     def threshold2D( self, image ):

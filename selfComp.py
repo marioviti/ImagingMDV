@@ -12,16 +12,16 @@ import zlib, cPickle
 #####################################
 
 # T1 weughts
-thrsCST = 0.4 # spinal liquid
-thrsGM = 0.5 # grey matter
-thrsWM = 0.8 # white matter
+thrsCST = 0.4#150# # spinal liquid
+thrsGM = 0.5#200# # grey matter
+thrsWM = 0.8#280# # white matter
 
 # Quantization
 pattSideDim = 3 # patch size
 bitdept = 2 # bit depth
 
 # Compression parameters
-N = 0.06
+N = 0.05
 W = 0.01
 
 ######################################
@@ -38,6 +38,7 @@ if __name__ == "__main__":
     #imageData = niiImg.loadNiiAsIsAndCCont(inPath)
 
     image = imageData[int(imageData.shape[0]/2)+6,:,:]
+    #image = cv2.imread(sys.argv[1],0)
     sampler = mdv.sampler()
     sampler.sample2D(image,[thrsCST,thrsGM,thrsWM],bitdept,pattSideDim)
     sampler.maxEnthropy(N,W)

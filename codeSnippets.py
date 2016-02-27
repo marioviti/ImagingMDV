@@ -1,3 +1,46 @@
+###Compression
+
+# 27 KB e non comprime
+#out_file = open(os.path.join( path, namefile+'_dict.txt' ), "wb")
+#for i in self.__compressedDictionary:
+#    arr = array.array('B',i)
+#    arr.tofile(out_file)
+#    out_file.write('\n')
+#out_file.close()
+
+
+#print "raw byte_size: " + `sys.getsizeof(self.__compressedDictionary)`
+
+#for i in self.__compressedDictionary:
+#    print i
+
+#compressed = (zlib.compress(pickle.dumps(self.__compressedDictionary,2),9))
+#print "compressed byte_size: " + `sys.getsizeof(compressed)`
+
+#decompressed = pickle.loads(zlib.decompress(compressed))
+#print "decompressed:" + '\n' + `decompressed`
+
+#out_file = open(os.path.join( path, namefile+'_dict.mdv' ), "wb")
+#out_file.write(zlib.compress(pickle.dumps(self.__compressedDictionary,2),7))
+#out_file.close()
+
+#in_file = open(os.path.join( path, namefile+'_dict.txt' ), "rb")
+#todoPickle = zlib.decompress(base64.b64decode(in_file.read()))
+#uncompressed = pickle.loads(todoPickle)
+#if uncompressed == self.__compressedDictionary:
+#    print "OK compression"
+
+#pickle.dump( self.__compressedDictionary, open( os.path.join( path, namefile+'_dictionary.pkl' ), "wb" ))
+#pickle.dump( self.__compressedOffset, open( os.path.join( path, namefile+'_offset.pkl' ), "wb" ))
+#pickle.dump( self.__compressedDictionary, open( os.path.join( path, namefile+'_dictionary_2.pkl' ), "wb" ), 2 )
+#pickle.dump( self.__compressedOffset, open( os.path.join( path, namefile+'_offset_2.pkl' ), "wb" ),2)
+#compressed_offset = zlib.compress(cPickle.dumps(self.__compressedOffset),9)
+#pickle.dump( base64.b64encode(compressed_offset), open( os.path.join( path, namefile+'_offset.zip' ), "wb" ))
+#compressed_dictionary = zlib.compress(cPickle.dumps(self.__compressedDictionary),9)
+#pickle.dump( base64.b64encode(compressed_dictionary), open( os.path.join( path, namefile+'_dictionary.zip' ), "wb" ))
+
+###use multiple thresh
+
 # cv2.imshow('image',imgthrs * (1<<16))
 # cv2.waitKey(0)
 # cv2.destroyAllWindows()

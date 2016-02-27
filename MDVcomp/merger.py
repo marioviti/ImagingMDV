@@ -35,6 +35,10 @@ class merger:
         freqHistogram = utils.loadDictionary(path)
         self.__frequencyList += [ { int(k) : float(v) for k,v in freqHistogram.items() } ]
 
+    def selection(self, N, W):
+        top = math.log(N/W)
+        self.__bins = { k:math.log(v) for k,v in self.__bins.items() }
+
     #tested
     def merge(self):
         """
