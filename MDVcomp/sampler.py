@@ -70,7 +70,7 @@ class sampler:
         return self.__compressedDictionary
 
     def loadPatternBank(self, path):
-        self.__patternBank = { int(k) : float(v) for k,v in utils.__patternBank(path).items() }
+        self.__patternBank = { int(k) : float(v) for k,v in utils.loadDictionary(path).items() }
 
     #tested
     def maxEnthropy(self, percent, maxacceptance):
@@ -117,17 +117,18 @@ class sampler:
         self.initialize(image,patchSide,thrss,bitDepth)
         x, y, z = image.shape
         imageCopy = utils.multipleThrs3D(image, thrss)
+        i=j=k=0
         for i in range(0, x - self.__patternSide + 1):
             for j in range(0, y - self.__patternSide + 1):
                 for k in range(0, z - self.__patternSide + 1):
-                    key = utils.patternKey( self.__bitDepth, imageCopy[i:i + self.__patternSide, j:j + self.__patternSide, k:k + self.__patternSide] )
+                    key = utils.patternKey(self.__bitDepth, imageCopy[i:i + self.__patternSide, j:j + self.__patternSide, k:k + self.__patternSide] )
                     if key in self.__freqHistogram:
                         self.__freqHistogram[key] += 1
                     else:
                         self.__freqHistogram.update({key: 1})
         self.__freqHistogram = { k : float(v)/float(self.__overall) for k,v in self.__freqHistogram.items() }
 
-        
+
     #tested
     def filter2DImage( self, image ):
         x, y = image.shape
@@ -142,18 +143,23 @@ class sampler:
                     imageCopy[i:i + self.__patternSide, j:j + self.__patternSide] = imageSrcCopy[i:i + self.__patternSide, j:j + self.__patternSide]
         return imageCopy
 
-    #tested
+    #testing
     def filter3DImage(self, image):
         x, y, z = image.shape
         imageCopy = utils.multipleThrs3D(image, self.__threshold)
         imageSrcCopy = np.copy(imageCopy)
-        imageCopy = imageCopy * 0 + 1
+        imageCopy = imageSrcCopy * 0 + 1
+        i=j=k=0
+        print "start"
+        sys.stdout.write("progress:")
         for i in range(0, x - self.__patternSide + 1):
+            sys.stdout.flush()
+            sys.stdout.write("\rprogress: " + `i*j*k/float(self.__overall)`)
             for j in range(0, y - self.__patternSide + 1):
                 for k in range(0, z - self.__patternSide + 1):
-                    key = utils.patternKey(1, imageSrcCopy[i:i + self.__patternSide, j:j + self.__patternSide, z:z + self.__patternSide])
+                    key = utils.patternKey(self.__bitDepth, imageSrcCopy[i:i + self.__patternSide, j:j + self.__patternSide, k:k + self.__patternSide] )
                     if key in self.__patternBank.keys():
-                        imageCopy[i:i + self.__patternSide, j:j + self.__patternSide, z:z + self.__patternSide] = imageSrcCopy[i:i + self.__patternSide, j:j + self.__patternSide, z:z + self.__patternSide]
+                        imageCopy[i:i + self.__patternSide, j:j + self.__patternSide, k:k + self.__patternSide] = imageSrcCopy[i:i + self.__patternSide, j:j + self.__patternSide, k:k + self.__patternSide]
         return imageCopy
 
     #testing

@@ -1,3 +1,37 @@
+#### selfcompdump
+
+    ## print json.dumps(sampler.freqHistogram, sort_keys=True, indent=4, separators=(',',':'))
+    ## print json.dumps(sampler.compStat, sort_keys=True, indent=4, separators=(',',':'))
+    ## print json.dumps(sampler.compressed, sort_keys=True, indent=4, separators=(',',':'))
+    ## print sampler.compressed
+
+    #sampler.encode2DAsDictionary(filteredImage)
+    #sampler.encode2DAsOfset(filteredImage)
+    ##pickle.dump(zlib.compress(cPickle.dumps(sampler.compressedDictionary,cPickle.HIGHEST_PROTOCOL),9), open( os.path.join( "./", sys.argv[2]+'.pkl' ), "wb" ),2)
+    #pickle.dump( zlib.compress(cPickle.dumps(sampler.compressedDictionary,cPickle.HIGHEST_PROTOCOL),7), open( os.path.join( "./", sys.argv[2]+'.pkl' ), "wb" ))
+
+    #test = sampler.compressedDictionary
+    #comp = zlib.compress(cPickle.dumps(sampler.compressedDictionary,cPickle.HIGHEST_PROTOCOL),9)
+    #print len(comp)
+    #test2 = cPickle.loads(zlib.decompress(comp))
+
+
+    #cv2.imwrite(os.path.join( "./", sys.argv[2]+'_processed.png' ),filteredImage/float((2**bitdept)-1)*348, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+
+    ##dct = np.copy(image)
+    ##trans = dctrans(dct)
+    #cv2.imshow("showtrans", trans)
+    #cv2.waitKey()
+
+    #imageCenter = niiImg.binaryThrs2D(imageData[int(imageData.shape[0]/2),:,:],thrsCST) * (1<<16)
+    #cv2.imwrite(os.path.join( "./", "centerCST"+'.png' ),imageCenter, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+    ##imageData = niiImg.loadNiiAsCanonical(inPath)
+    #imageCenter = niiImg.binaryThrs2D(imageData[int(imageData.shape[0]/2),:,:],thrsGM) * (1<<16)
+    #cv2.imwrite(os.path.join( "./", "centerGM"+'.png' ), imageCenter, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+    ##imageData = niiImg.loadNiiAsCanonical(inPath)
+    #imageCenter = niiImg.binaryThrs2D(imageData[int(imageData.shape[0]/2),:,:],thrsWM) * (1<<16)
+    #cv2.imwrite(os.path.join( "./", "centerWM"+'.png' ), imageCenter, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+
 ###Compression
 
 # 27 KB e non comprime
