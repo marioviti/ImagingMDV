@@ -12,9 +12,9 @@ import zlib, cPickle
 #####################################
 
 # T1 weughts
-thrsCST = 0.4#150# # spinal liquid
-thrsGM = 0.5#200# # grey matter
-thrsWM = 0.8#280# # white matter
+thrsCST = 0.2#150# # spinal liquid
+thrsGM = 0.4#200# # grey matter
+thrsWM = 0.6#280# # white matter
 
 # Quantization
 pattSideDim = 3 # patch size
@@ -22,7 +22,7 @@ bitdept = 2 # bit depth
 
 # Compression parameters
 N = 0.05
-W = 0.01
+W = 0.3
 
 ######################################
 
@@ -34,18 +34,19 @@ if __name__ == "__main__":
     inPath = sys.argv[1]
     imageData = niiImg.loadNiiAsCanonical(inPath)
 
-    image = imageData[int(imageData.shape[0]/2)+4,:,:]
+    image = imageData[int(imageData.shape[0]/2)+10,:,:]
     sampler = mdv.sampler()
     sampler.sample2D(image,[thrsCST,thrsGM,thrsWM],bitdept,pattSideDim)
-    sampler.maxEnthropy(N,W)
-
+    sampler.maxSelection(N,W)
     cv2.imshow("show", image)
     cv2.waitKey()
     filteredImage = sampler.filter2DImage(image)
-
     cv2.imshow("show2", filteredImage/float((2**bitdept)-1))
     cv2.waitKey()
-
+    #print sampler.compStat
     sampler.encode2DAsDictionary(filteredImage)
     sampler.encode2DAsOfset(filteredImage)
+    #print "size of compressedDictionary in main memory:" + `sys.getsizeof(sampler.compressedDictionary)`
     sampler.saveCompressed("./",sys.argv[2])
+
+    print json.dumps(sampler.freqHistogram, sort_keys=True, indent=4, separators=(',',':'))
