@@ -11,7 +11,6 @@ def enthropy(p):
 def binn(freq, binfact):
     return math.floor(float(freq)*float(binfact)) * float(1)/float(binfact)
     
-
 #tested
 def keyPattern( pattshape, bitDepth, key ):
     """

@@ -35,10 +35,6 @@ class merger:
         freqHistogram = utils.loadDictionary(path)
         self.__frequencyList += [ { int(k) : float(v) for k,v in freqHistogram.items() } ]
 
-    def selection(self, N, W):
-        top = math.log(N/W)
-        self.__bins = { k:math.log(v) for k,v in self.__bins.items() }
-
     #tested
     def merge(self):
         """
@@ -59,7 +55,38 @@ class merger:
         self.frequencyList = [self.__mergedFrequencies]
 
     #tested
+    def logbinning(self, binfact):
+        """
+        binning using the log value
+        """
+        historgram = self.__frequencyList[0]
+        historgram = { k : math.log(v) for k,v in historgram.items() }
+        self.__binfactor = binfact
+        bean = maxK = minK = 0
+        for patt,freq in historgram.items():
+            bean = utils.binn(freq,binfact)
+            if bean < minK:
+                minK = bean
+                if maxK == 0:
+                    maxK = minK
+            if bean > maxK:
+                 maxk = bean
+            if bean in self.__bins:
+                self.__bins[bean] += 1
+            else:
+                self.__bins.update({bean:1})
+        i = minK
+        while(i<maxk):
+            i += 1/float(binfact)
+            if not i in self.__bins:
+                self.__bins.update({i:1})
+
+    #tested
     def binning(self, binfact):
+        """
+        binning
+        """
+        historgram = self.__frequencyList[0]
         self.__binfactor = binfact
         bean = maxK = minK = 0
         for patt,freq in historgram.items():

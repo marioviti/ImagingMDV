@@ -17,20 +17,23 @@ def convert(data):
 
 if __name__ == "__main__":
 
-    if(len(sys.argv)!=4):
-        print "please provide argument: inPath(.json) xlabel ylabel"
+    if(len(sys.argv)<4):
+        print "please provide argument: inPath(.json) xlabel ylabel [logop]"
         sys.exit(0)
     inPath = sys.argv[1]
     xlabel = sys.argv[2]
     ylabel = sys.argv[3]
+    logOp = 0
+    if(len(sys.argv)>4):
+        logOp = sys.argv[4]
 
     with open(inPath) as data_file:
         data = json.load(data_file)
         plot = convert(data)
-        # plot = { math.log(float(k)) : math.log(float(v)) for k,v in plot.items() if float(k) > 0}
-        plot = { float(k) : (float(v)) for k,v in plot.items() }
+        plot = { math.log(float(k)) : math.log(float(v)) for k,v in plot.items() if float(k) > 0}
+        if not logOp == 0:
+            plot = { float(k) : math.log((float(v))) for k,v in plot.items() }
         sortedKey = sorted(plot.keys())
-        print sortedKey
         yval = []
         for key in sortedKey:
             yval.append(plot[key])

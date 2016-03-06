@@ -22,15 +22,14 @@ bitdept = 2 # bit depth
 
 # Compression parameters
 N = 0.05
-W = 0.3
+W = 0.2
 
 ######################################
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-             print "please provide argument: inPath(.nii) outPath"
-             sys.exit(0)
-
+        print "please provide argument: inPath(.nii) outPath"
+        sys.exit(0)
     inPath = sys.argv[1]
     imageData = niiImg.loadNiiAsCanonical(inPath)
 

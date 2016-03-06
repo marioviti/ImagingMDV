@@ -106,9 +106,10 @@ class sampler:
             for patt,freq in self.__freqHistogram.items():
                 if freq < rang + offset and freq > rang - offset and i < N:
                     self.__patternBank.update({ patt : i })
+                    del self.freqHistogram[patt]
                     i += 1
-        #if j == 100:
-            #print "maxSelection terminated with the caution cause:\n extimated number of patterns in bank: "+ `N` +"\nactual number of patterns in bank:" + `i`
+        if j == 100:
+            print "maxSelection terminated with the caution cause:\n extimated number of patterns in bank: "+ `N` +"\nactual number of patterns in bank:" + `i`
         self.__compStat["pattBank_Size"] = i
         self.__compStat["pattBank_ratio"] = percent
 
