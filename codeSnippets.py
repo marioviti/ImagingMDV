@@ -1,4 +1,12 @@
+
+#out_file.close()
+#for coord_list in self.compressedDictionary:
+#    out_file.write(struct.pack("I",len(coord_list)))
+#    for value in coord_list:
+#        out_file.write(struct.pack("I",value))
+
 #### selfcompdump
+
 
     ## print json.dumps(sampler.freqHistogram, sort_keys=True, indent=4, separators=(',',':'))
     ## print json.dumps(sampler.compStat, sort_keys=True, indent=4, separators=(',',':'))

@@ -7,6 +7,7 @@ import os
 import sys
 import array
 import struct
+import cv2
 
 class sampler:
     """
@@ -35,6 +36,7 @@ class sampler:
         self.__freqHistogram = self.__bins = self.__patternBank = {}
         self.__compStat = { "freqOf_Hit" : 0 , "pattBank_Size" : 0 , "pattBank_ratio": 0}
         self.__compressedDictionary = []
+        self.__compressedWhiteSpace = []
         self.__compressedOffset = []
         self.__W = 0
         self.__N = 0
@@ -96,22 +98,27 @@ class sampler:
         totalLen = len(self.__freqHistogram.keys())
         self.__N = N = int (totalLen * percent)
         self.__W = W = maxacceptance
-        self.__patternBank = {}
+        self.__patternBank = []
         rang = W/float(N)
         i = j = 0
         offset = .0001
-        while i < N and j < 100:
+        calcExpVal = 0
+        while i < N and j < 10:
             offset *= 2
             j += 1
             for patt,freq in self.__freqHistogram.items():
                 if freq < rang + offset and freq > rang - offset and i < N:
-                    self.__patternBank.update({ patt : i })
+                    self.__patternBank += [patt]
+                    calcExpVal += freq
                     del self.freqHistogram[patt]
                     i += 1
         if j == 100:
             print "maxSelection terminated with the caution cause:\n extimated number of patterns in bank: "+ `N` +"\nactual number of patterns in bank:" + `i`
+
+        self.compStat.update({"maxAcceptance":maxacceptance})
         self.__compStat["pattBank_Size"] = i
         self.__compStat["pattBank_ratio"] = percent
+        self.compStat.update({"expectedFreqVal":calcExpVal/len(self.__patternBank)})
 
     #tested
     def sample2D(self, image, thrss, bitDepth, patchSide):
@@ -153,7 +160,6 @@ class sampler:
                         self.__freqHistogram.update({key: 1})
         self.__freqHistogram = { k : float(v)/float(self.__overall) for k,v in self.__freqHistogram.items() }
 
-
     #tested
     def filter2DImage( self, image ):
         x, y = image.shape
@@ -161,85 +167,165 @@ class sampler:
         imageSrcCopy = np.copy(imageCopy)
         imageCopy = imageCopy * 0 + int(2**self.__bitDepth) - 1
         position = {}
-        #print "filter2DImage"
         fired = 0
         i = j = 0
         for i in range(0, x - self.__patternSide + 1):
-            #sys.stdout.flush()
-            #sys.stdout.write("\rprogress: " + `i*j/float(self.__overall)`)
             for j in range(0, y - self.__patternSide + 1):
                 key = utils.patternKey(self.__bitDepth, imageSrcCopy[i:i + self.__patternSide, j:j + self.__patternSide])
-                if key in self.__patternBank.keys():
+                if key in self.__patternBank:
                     fired += 1
                     imageCopy[i:i + self.__patternSide, j:j + self.__patternSide] = imageSrcCopy[i:i + self.__patternSide, j:j + self.__patternSide]
         self.__compStat["freqOf_Hit"] = fired / float((i-self.__patternSide)*(j-self.__patternSide))
         return imageCopy
 
-    #testing
+    #tested
     def filter3DImage(self, image):
         x, y, z = image.shape
         imageCopy = utils.multipleThrs3D(image, self.__threshold)
         imageSrcCopy = np.copy(imageCopy)
         imageCopy = imageSrcCopy * 0 + 1
         i=j=k=0
-        #print "filter3DImage"
         for i in range(0, x - self.__patternSide + 1):
-            #sys.stdout.flush()
-            #sys.stdout.write("\rprogress: " + `i*j*k/float(self.__overall)`)
             for j in range(0, y - self.__patternSide + 1):
                 for k in range(0, z - self.__patternSide + 1):
                     key = utils.patternKey(self.__bitDepth, imageSrcCopy[i:i + self.__patternSide, j:j + self.__patternSide, k:k + self.__patternSide] )
-                    if key in self.__patternBank.keys():
+                    if key in self.__patternBank:
                         imageCopy[i:i + self.__patternSide, j:j + self.__patternSide, k:k + self.__patternSide] = imageSrcCopy[i:i + self.__patternSide, j:j + self.__patternSide, k:k + self.__patternSide]
         return imageCopy
 
-    #testing
+    def encodeWhiteSpace(self, image):
+        x, y = image.shape
+        imageCopy = utils.multipleThrs2D(image, self.__threshold)
+        imageSrcCopy = np.copy(imageCopy)
+        imageCopy = imageCopy * 0 - 100
+        position = {}
+        fired = 0
+        i = j = 0
+        for i in range(0, x - self.__patternSide + 1):
+            for j in range(0, y - self.__patternSide + 1):
+                key = utils.patternKey(self.__bitDepth, imageSrcCopy[i:i + self.__patternSide, j:j + self.__patternSide])
+                if key in self.__patternBank:
+                    fired += 1
+                    imageCopy[i:i + self.__patternSide, j:j + self.__patternSide] = imageSrcCopy[i:i + self.__patternSide, j:j + self.__patternSide]
+        self.__compStat["freqOf_Hit"] = fired / float((i-self.__patternSide)*(j-self.__patternSide))
+
+        cv2.imshow("show2", imageCopy*100)
+        cv2.waitKey()
+
+        offset = False
+        numOfpix = 0
+        numOfOffsets = 0
+        for i in range(0, x):
+            for j in range(0, y):
+                if not imageCopy[i][j] == - 100:
+                    numOfpix +=1
+                    offset = False
+                else:
+                    if not offset:
+                        numOfOffsets +=1
+                        offset = True
+        print x
+        print y
+        print numOfpix
+        print numOfOffsets
+
+        whitespace = np.array([], dtype = np.uint8)
+        first = True
+        offset = False
+        numOfpix = 0
+        numOfOffsets = 0
+        for i in range(0, x):
+            for j in range(0, y):
+                if not imageCopy[i][j] == - 100:
+                    if offset:
+                        offset = False
+                        first = True
+                        #whitespace = np.append( whitespace, -1 )
+                    whitespace = np.append( whitespace, imageCopy[i][j] )
+                    numOfpix += 1
+                else:
+                    if first and not offset:
+                        numOfOffsets += 1
+                        first = False
+                        ofsset = True
+                        #whitespace = np.append( whitespace, -1 )
+                        index = len(whitespace)
+                        #whitespace = np.append( whitespace, 1 )
+                    elif not first and offset:
+                        numOfOffsets += 1
+                        #whitespace[index] += 1
+
+        self.__compressedWhiteSpace = np.array(whitespace)
+
+
+    #tested
     def encode2DAsDictionary(self, image):
         """
             Use only for images after filtering, the pixel value must range in [ 0, 2^bitDepth [
         """
         x, y = image.shape
-        position = {}
-        for i in range(0, x - self.__patternSide + 1):
-            for j in range(0, y - self.__patternSide + 1):
-                key = utils.patternKey(self.__bitDepth, image[i:i + self.__patternSide, j:j + self.__patternSide])
-                if key in self.patternBank:
-                    id_key = self.__patternBank[key]
-                    if not id_key in position:
-                        position.update({id_key:len(self.__compressedDictionary)})
-                        self.__compressedDictionary += [[id_key,i,j]]
-                    else:
-                        self.__compressedDictionary[position[id_key]] += [i,j]
+        position = []
+        for i in range(0,len(self.__patternBank)):
+            position.append([])
+        for i in range(0, x-self.__patternSide+1):
+            for j in range(0, y-self.__patternSide+1):
+                pattern = utils.patternKey(self.__bitDepth, image[i:i+self.__patternSide, j:j+self.__patternSide])
+                if pattern in self.__patternBank:
+                    position[self.patternBank.index(pattern)] += [i,j]
+        coordlistSize = 0
+        for lists in position:
+            coordlistSize += len(lists)
+        self.compStat.update({"coordsize": coordlistSize})
+        self.compStat.update({"sizeOfDictionary": sys.getsizeof(position)})
+        self.__compressedDictionary = np.array(position)
 
     #testing
     def encode2DAsOfset(self, image):
         x, y = image.shape
-        offset = 0
-        zeroOffsetState = False
-        for i in range(0, x):
-            for j in range(0, y):
-                if image[i][j] == 0 and offset == 0:
-                    self.__compressedOffset += ['>']
-                    offset += 1
-                elif image[i][j] == 0 and offset>0:
-                    offset += 1
-                elif ( not image[i][j] == 0 ) and offset>0:
-                    offset = 0
-                    self.__compressedOffset += [offset,'<',int(image[i][j])]
-                elif not image[i][j] == 0 and offset == 0:
-                    self.__compressedOffset += [image[i][j]]
+        position = []
+        first = True
+        offset = False
+        offValue = len(self.__patternBank) + 1
+        self.compStat.update({"offsetValue": offValue})
+        for i in range(0, x-self.__patternSide+1):
+            for j in range(0, y-self.__patternSide+1):
+                pattern = utils.patternKey(self.__bitDepth, image[i:i+self.__patternSide, j:j+self.__patternSide])
+                if pattern in self.__patternBank:
+                    indexval = self.patternBank.index(pattern)
+                    if offset:
+                        offset = False
+                        first = True
+                        position = np.append( position, offValue )
+                    position = np.append( position, indexval )
+                else:
+                    if first and not offset:
+                        first = False
+                        ofsset = True
+                        position = np.append( position, offValue )
+                        index = len(position)
+                        position = np.append( position, 1 )
+                    elif not first and offset:
+                        position[index] += 1
+        self.__compressedOffset = np.array(position)
 
     #tested
     def saveCompressed( self, path ,namefile ):
-        out_file = open(os.path.join( path, namefile+'_dict.mdv' ), "wb")
-        out_file.write(zlib.compress(pickle.dumps(self.__compressedDictionary,2),9))
-        #out_file.close()
-        #for coord_list in self.compressedDictionary:
-        #    out_file.write(struct.pack("I",len(coord_list)))
-        #    for value in coord_list:
-        #        out_file.write(struct.pack("I",value))
-        out_file.close()
+        out_file1 = open(os.path.join( path, namefile+'_dict.mdv' ), "wb")
+        np.save( out_file1, self.__compressedDictionary )
+        out_file2 = open(os.path.join( path, namefile+'_offset.mdv' ), "wb")
+        np.save( out_file2, self.__compressedOffset )
+        out_file3 = open(os.path.join( path, namefile+'_whitespace.mdv' ), "wb")
+        np.save( out_file3, self.__compressedWhiteSpace )
 
+        out_file1 = open(os.path.join( path, namefile+'_dict.mdv' ), "rb")
+        if not np.array_equal(self.__compressedDictionary , np.load(out_file1)):
+            raise ValueError("corruption while saving")
+        out_file2 = open(os.path.join( path, namefile+'_offset.mdv' ), "rb")
+        if not np.array_equal(self.__compressedOffset , np.load(out_file2)):
+            raise ValueError("corruption while saving")
+        out_file3 = open(os.path.join( path, namefile+'_whitespace.mdv' ), "rb")
+        if not np.array_equal(self.__compressedWhiteSpace , np.load(out_file3)):
+            raise ValueError("corruption while saving")
 
     #tested
     def threshold2D( self, image ):
